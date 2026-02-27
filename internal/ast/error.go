@@ -18,13 +18,17 @@ package ast
 
 import "fmt"
 
-// Position represents a line in a file.
+// Position represents a location in a file.
 type Position struct {
 	File string
 	Line int
+	Col  int
 }
 
 func (p Position) String() string {
+	if p.Col > 0 {
+		return fmt.Sprintf("%s:%d:%d", p.File, p.Line, p.Col)
+	}
 	return fmt.Sprintf("%s:%d", p.File, p.Line)
 }
 
@@ -45,7 +49,7 @@ func (e *ParseError) Error() string {
 }
 
 func (e *ParseError) Position() Position {
-	return Position{File: e.file, Line: e.tok.line}
+	return Position{File: e.file, Line: e.tok.line, Col: e.tok.col}
 }
 
 func (e *ParseError) IsWarning() bool {

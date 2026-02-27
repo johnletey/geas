@@ -147,7 +147,7 @@ func (p *Parser) atDocumentTop() bool {
 // makeComment creates a comment node.
 func (p *Parser) makeComment(tok token) *Comment {
 	return &Comment{
-		stbase: stbase{src: p.doc, line: tok.line},
+		stbase: stbase{src: p.doc, line: tok.line, col: tok.col},
 		Text:   tok.text,
 	}
 }
@@ -216,7 +216,7 @@ func parseStatement(p *Parser) (done bool) {
 func parseLabelDef(p *Parser, tok token) *LabelDef {
 	name := tok.text
 	li := &LabelDef{
-		stbase: stbase{src: p.doc, line: tok.line},
+		stbase: stbase{src: p.doc, line: tok.line, col: tok.col},
 		Ident:  name,
 		Dotted: tok.typ == dottedLabel,
 	}
@@ -263,7 +263,7 @@ func parseMacroDef(p *Parser) Statement {
 
 	// Parse parameters and body.
 	var (
-		base         = stbase{src: p.doc, line: name.line}
+		base         = stbase{src: p.doc, line: name.line, col: name.col}
 		def          = &ExpressionMacroDef{stbase: base, Ident: name.text}
 		bodyTok      token
 		didParams    bool
@@ -363,7 +363,7 @@ commentLoop:
 	// Register definition.
 	checkDuplicateMacro(p, nameTok)
 	def := &InstructionMacroDef{
-		stbase:       stbase{src: p.doc, line: nameTok.line},
+		stbase:       stbase{src: p.doc, line: nameTok.line, col: nameTok.col},
 		Ident:        nameTok.text,
 		Params:       params,
 		Body:         doc,
@@ -385,7 +385,7 @@ func checkDuplicateMacro(p *Parser, nameTok token) {
 }
 
 func parseInclude(p *Parser, d token) *Include {
-	st := &Include{stbase: stbase{src: p.doc, line: d.line}}
+	st := &Include{stbase: stbase{src: p.doc, line: d.line, col: d.col}}
 	switch tok := p.next(); tok.typ {
 	case stringLiteral:
 		st.Filename = tok.text
@@ -396,7 +396,7 @@ func parseInclude(p *Parser, d token) *Include {
 }
 
 func parseAssemble(p *Parser, d token) *Assemble {
-	st := &Assemble{stbase: stbase{src: p.doc, line: d.line}}
+	st := &Assemble{stbase: stbase{src: p.doc, line: d.line, col: d.col}}
 	switch tok := p.next(); tok.typ {
 	case stringLiteral:
 		st.Filename = tok.text
@@ -407,7 +407,7 @@ func parseAssemble(p *Parser, d token) *Assemble {
 }
 
 func parsePragma(p *Parser, d token) *Pragma {
-	st := &Pragma{stbase: stbase{src: p.doc, line: d.line}}
+	st := &Pragma{stbase: stbase{src: p.doc, line: d.line, col: d.col}}
 	switch tok := p.next(); tok.typ {
 	case identifier:
 		st.Option = tok.text
@@ -426,7 +426,7 @@ func parsePragma(p *Parser, d token) *Pragma {
 }
 
 func parseBytes(p *Parser, d token) *Bytes {
-	st := &Bytes{stbase: stbase{src: p.doc, line: d.line}}
+	st := &Bytes{stbase: stbase{src: p.doc, line: d.line, col: d.col}}
 	for {
 		switch tok := p.next(); tok.typ {
 		case lineEnd, eof:
@@ -461,7 +461,7 @@ func parseBytes(p *Parser, d token) *Bytes {
 
 func parseOpcode(p *Parser, tok token) *Opcode {
 	st := &Opcode{
-		stbase: stbase{src: p.doc, line: tok.line},
+		stbase: stbase{src: p.doc, line: tok.line, col: tok.col},
 		Op:     tok.text,
 	}
 	size, isPush := parsePushSize(tok.text)
@@ -533,7 +533,7 @@ func parsePushSize(name string) (int, bool) {
 
 func parseInstructionMacroCall(p *Parser, nameTok token) *InstructionMacroCall {
 	st := &InstructionMacroCall{
-		stbase: stbase{src: p.doc, line: nameTok.line},
+		stbase: stbase{src: p.doc, line: nameTok.line, col: nameTok.col},
 		Ident:  nameTok.text,
 	}
 	switch tok := p.next(); tok.typ {
@@ -588,7 +588,7 @@ func parseArith(p *Parser, left Expr, tok token, minPrecedence int) Expr {
 			Op:    op,
 			Left:  left,
 			Right: right,
-			pos:   Position{p.doc.File, tok.line},
+			pos:   Position{p.doc.File, tok.line, tok.col},
 		}
 	}
 }
@@ -617,7 +617,7 @@ func parsePrimaryExpr(p *Parser, tok token) Expr {
 		call := &MacroCallExpr{
 			Ident:   tok.text,
 			Builtin: tok.typ == dottedIdentifier,
-			pos:     Position{p.doc.File, tok.line},
+			pos:     Position{p.doc.File, tok.line, tok.col},
 		}
 		switch tok := p.next(); tok.typ {
 		case openParen:
@@ -630,14 +630,14 @@ func parsePrimaryExpr(p *Parser, tok token) Expr {
 	case variableIdentifier:
 		return &VariableExpr{
 			Ident: tok.text,
-			pos:   Position{p.doc.File, tok.line},
+			pos:   Position{p.doc.File, tok.line, tok.col},
 		}
 
 	case labelRef, dottedLabelRef:
 		return &LabelRefExpr{
 			Ident:  tok.text,
 			Dotted: tok.typ == dottedLabelRef,
-			pos:    Position{p.doc.File, tok.line},
+			pos:    Position{p.doc.File, tok.line, tok.col},
 		}
 
 	case numberLiteral:
@@ -649,7 +649,7 @@ func parsePrimaryExpr(p *Parser, tok token) Expr {
 		return &LiteralExpr{
 			text:  tok.text,
 			value: v,
-			pos:   Position{p.doc.File, tok.line},
+			pos:   Position{p.doc.File, tok.line, tok.col},
 		}
 
 	case stringLiteral:
@@ -662,7 +662,7 @@ func parsePrimaryExpr(p *Parser, tok token) Expr {
 			text:   tok.text,
 			value:  lzint.FromBytes(bytes),
 			string: true,
-			pos:    Position{p.doc.File, tok.line},
+			pos:    Position{p.doc.File, tok.line, tok.col},
 		}
 
 	case arith:
@@ -684,7 +684,7 @@ func parseUnaryExpr(p *Parser, tok token) Expr {
 		return &UnaryExpr{
 			Op:  op,
 			Arg: arg,
-			pos: Position{p.doc.File, tok.line},
+			pos: Position{p.doc.File, tok.line, tok.col},
 		}
 	default:
 		p.throwError(tok, "unexpected arithmetic op %v", op)
@@ -701,7 +701,7 @@ func parseParenExpr(p *Parser, openParen token) Expr {
 	default:
 		expr = &GroupExpr{
 			Inner: parseExpr(p, tok),
-			pos:   Position{File: p.doc.File, Line: openParen.line},
+			pos:   Position{File: p.doc.File, Line: openParen.line, Col: openParen.col},
 		}
 	}
 	// Ensure closing paren is there.

@@ -397,8 +397,8 @@ expr-macro-deprecated:
     bytecode:
       "030160036017"
     warnings:
-        - ':3: warning: macro bytelen() is deprecated, use len()'
-        - ':4: warning: macro bitlen() is deprecated, use intbits()'
+        - ':3:5: warning: macro bytelen() is deprecated, use len()'
+        - ':4:5: warning: macro bitlen() is deprecated, use intbits()'
 
 expr-macro-deprecated-dedup-warning:
   input:
@@ -411,7 +411,7 @@ expr-macro-deprecated-dedup-warning:
     bytecode:
       "600360036003"
     warnings:
-        - ':1: warning: macro bytelen() is deprecated, use len()'
+        - ':1:18: warning: macro bytelen() is deprecated, use len()'
 
 global-macros:
   input:
@@ -493,7 +493,7 @@ global-label-conflict-dotted:
           push 1
   output:
     errors:
-      - "label.evm:1: @.LABEL already defined (as jumpdest)"
+      - "label.evm:1:1: @.LABEL already defined (as jumpdest)"
 
 global-label-in-macro:
   input:
@@ -505,7 +505,7 @@ global-label-in-macro:
       %glob(2)
   output:
     errors:
-      - ':2: @.GLOBAL already defined by invocation of %glob at :4'
+      - ':2:1: @.GLOBAL already defined by invocation of %glob at :4:1'
 
 global-label-redefine-toplevel:
   input:
@@ -545,7 +545,7 @@ global-label-redefine-include-macro:
           JUMP @LABEL
   output:
     errors:
-      - 'label.evm:1: @LABEL already defined by #include "label.evm" at mac.evm:3'
+      - 'label.evm:1: @LABEL already defined by #include "label.evm" at mac.evm:3:2'
 
 global-label-in-macro-not-called:
   input:
@@ -580,8 +580,8 @@ global-macro-redefine:
         #define EMAC = 12
   output:
     errors:
-      - 'instr.evm:1: macro %IMAC already defined by #include "instr.evm" at :1'
-      - 'expr.evm:1: macro EMAC already defined by #include "expr.evm" at :3'
+      - 'instr.evm:1:9: macro %IMAC already defined by #include "instr.evm" at :1'
+      - 'expr.evm:1:8: macro EMAC already defined by #include "expr.evm" at :3'
 
 # this tests setting a global from outside the compiler
 global-external:
@@ -616,7 +616,7 @@ global-override-macro-with-params-warning:
   output:
     bytecode: '6005'
     warnings:
-      - 'inc.evm:1: warning: overridden global macro G has parameters'
+      - 'inc.evm:1:8: warning: overridden global macro G has parameters'
 
 include-basic:
   input:
@@ -809,7 +809,7 @@ instr-macro-recursion:
       %parent(1)
   output:
     errors:
-      - ':2: recursive call of macro %parent'
+      - ':2:3: recursive call of macro %parent'
 
 instr-macro-redefine-builtin:
   input:
@@ -861,7 +861,7 @@ instr-macro-variable-local:
       %outer(1)
   output:
     errors:
-      - ":3: undefined macro parameter $outer"
+      - ":3:2: undefined macro parameter $outer"
 
 instr-macro-variable-in-include-file:
   input:
@@ -893,7 +893,7 @@ instr-macro-variable-in-include-file-in-macro:
         }
   output:
     errors:
-      - "inc.eas:2: undefined macro parameter $param"
+      - "inc.eas:2:2: undefined macro parameter $param"
 
 immediates:
   input:
@@ -1295,4 +1295,4 @@ unreachable-code-warning-in-macro:
   output:
     bytecode: "00 6001 6002 01"
     warnings:
-      - ":3: warning: unreachable code (previous instruction is STOP at foo.eas:1)"
+      - ":3:4: warning: unreachable code (previous instruction is STOP at foo.eas:1)"

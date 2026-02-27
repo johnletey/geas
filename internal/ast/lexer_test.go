@@ -38,60 +38,60 @@ func TestLexer(t *testing.T) {
 	}{
 		{
 			input:  ";; this is a comment",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: comment, text: ";; this is a comment", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: comment, text: ";; this is a comment", line: 1}, {typ: eof, line: 1, col: 20}},
 		},
 		{
 			input:  "0x12345678",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "0x12345678", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "0x12345678", line: 1}, {typ: eof, line: 1, col: 10}},
 		},
 		{
 			input:  "0x123ggg",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "0x123", line: 1}, {typ: identifier, text: "ggg", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "0x123", line: 1}, {typ: identifier, text: "ggg", line: 1, col: 5}, {typ: eof, line: 1, col: 8}},
 		},
 		{
 			input:  "12345678",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "12345678", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "12345678", line: 1}, {typ: eof, line: 1, col: 8}},
 		},
 		{
 			input:  "123abc",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "123", line: 1}, {typ: identifier, text: "abc", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "123", line: 1}, {typ: identifier, text: "abc", line: 1, col: 3}, {typ: eof, line: 1, col: 6}},
 		},
 		{
 			input:  "0123abc",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "0123", line: 1}, {typ: identifier, text: "abc", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "0123", line: 1}, {typ: identifier, text: "abc", line: 1, col: 4}, {typ: eof, line: 1, col: 7}},
 		},
 		{
 			input:  "00123abc",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "00123", line: 1}, {typ: identifier, text: "abc", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: numberLiteral, text: "00123", line: 1}, {typ: identifier, text: "abc", line: 1, col: 5}, {typ: eof, line: 1, col: 8}},
 		},
 		{
 			input:  "@foo",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: labelRef, text: "foo", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: labelRef, text: "foo", line: 1, col: 1}, {typ: eof, line: 1, col: 4}},
 		},
 		{
 			input:  "@label123",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: labelRef, text: "label123", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: labelRef, text: "label123", line: 1, col: 1}, {typ: eof, line: 1, col: 9}},
 		},
 		{
 			input:  "@.label .label: .ident",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: dottedLabelRef, text: "label", line: 1}, {typ: dottedLabel, text: "label", line: 1}, {typ: dottedIdentifier, text: "ident", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: dottedLabelRef, text: "label", line: 1, col: 2}, {typ: dottedLabel, text: "label", line: 1, col: 9}, {typ: dottedIdentifier, text: "ident", line: 1, col: 17}, {typ: eof, line: 1, col: 22}},
 		},
 		// comment after label
 		{
 			input:  "@label123 ;; comment",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: labelRef, text: "label123", line: 1}, {typ: comment, text: ";; comment", line: 1}, {typ: eof, line: 1}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: labelRef, text: "label123", line: 1, col: 1}, {typ: comment, text: ";; comment", line: 1, col: 10}, {typ: eof, line: 1, col: 20}},
 		},
 		// comment after instruction
 		{
 			input:  "push 3 ;; comment\nadd",
-			tokens: []token{{typ: lineStart, line: 1}, {typ: identifier, text: "push", line: 1}, {typ: numberLiteral, text: "3", line: 1}, {typ: comment, text: ";; comment", line: 1}, {typ: lineEnd, text: "\n", line: 1}, {typ: lineStart, line: 2}, {typ: identifier, line: 2, text: "add"}, {typ: eof, line: 2}},
+			tokens: []token{{typ: lineStart, line: 1}, {typ: identifier, text: "push", line: 1}, {typ: numberLiteral, text: "3", line: 1, col: 5}, {typ: comment, text: ";; comment", line: 1, col: 7}, {typ: lineEnd, text: "\n", line: 1, col: 17}, {typ: lineStart, line: 2}, {typ: identifier, line: 2, text: "add"}, {typ: eof, line: 2, col: 3}},
 		},
 	}
 
 	for _, test := range tests {
 		tokens := lexAll(test.input)
 		if !slices.Equal(tokens, test.tokens) {
-			t.Errorf("input %q\ngot:  %v\nwant: %v", test.input, tokens, test.tokens)
+			t.Errorf("input %q\ngot:  %+v\nwant: %+v", test.input, tokens, test.tokens)
 		}
 	}
 }

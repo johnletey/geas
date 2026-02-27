@@ -34,6 +34,7 @@ type stateFn func(*lexer) stateFn
 type token struct {
 	text string
 	line int
+	col  int
 	typ  tokenType
 }
 
@@ -87,6 +88,7 @@ type lexer struct {
 	state  stateFn    // the current state function
 
 	lineno            int // current line number in the source file
+	lineStart         int // byte offset of current line start
 	start, pos, width int // positions for lexing and returning value
 }
 
@@ -174,7 +176,7 @@ func (l *lexer) acceptRunUntil(until rune) bool {
 
 // emit creates a new token and sends it to token channel for processing.
 func (l *lexer) emit(t tokenType) {
-	token := token{line: l.lineno, text: l.input[l.start:l.pos], typ: t}
+	token := token{line: l.lineno, col: l.start - l.lineStart, text: l.input[l.start:l.pos], typ: t}
 	l.tokens <- token
 	l.start = l.pos
 }
@@ -263,6 +265,7 @@ func lexNext(l *lexer) stateFn {
 			l.emit(lineEnd)
 			l.ignore()
 			l.lineno++
+			l.lineStart = l.pos
 			l.emit(lineStart)
 
 		case isSpace(r):
